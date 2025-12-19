@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -13,15 +14,41 @@ const TABS = [
     { name: 'Applications', href: '/admin/applications', badge: 2 },
 ];
 
-const METRICS = [
-    { label: 'Total Bookings', value: '4', icon: LayoutDashboard, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { label: 'Completed', value: '1', icon: CheckCircle, color: 'text-green-600', bg: 'bg-green-50' },
-    { label: 'Active Providers', value: '4', icon: Users, color: 'text-purple-600', bg: 'bg-purple-50' },
-    { label: 'Pending Apps', value: '2', icon: FileText, color: 'text-orange-600', bg: 'bg-orange-50' },
-];
+// Helper Component
+function StatsCard({ label, value, icon: Icon, color, bg }: any) {
+    return (
+        <div className="border-2 border-black p-4 flex flex-col justify-between h-32 relative bg-white">
+            <div className={cn("w-8 h-8 flex items-center justify-center border border-black mb-2", bg, color)}>
+                <Icon size={16} />
+            </div>
+            <div>
+                <h2 className="text-3xl font-bold">{value}</h2>
+                <p className="text-sm text-gray-500 font-medium">{label}</p>
+            </div>
+        </div>
+    );
+}
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
+    const [stats, setStats] = useState({
+        totalBookings: 0,
+        completedBookings: 0,
+        activeProviders: 0,
+        pendingApps: 0
+    });
+
+    useEffect(() => {
+        // Fetch stats
+        fetch('http://localhost:3001/admin/dashboard', {
+            headers: {
+                // 'Authorization': `Bearer ${token}` // TODO: Add Auth Token from store
+            }
+        })
+            .then(res => res.json())
+            .then(data => setStats(data))
+            .catch(err => console.error("Failed to fetch admin stats", err));
+    }, []);
 
     return (
         <div className="min-h-screen bg-white">
@@ -46,17 +73,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
                 {/* Metrics Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                    {METRICS.map((m) => (
-                        <div key={m.label} className="border-2 border-black p-4 flex flex-col justify-between h-32 relative">
-                            <div className={cn("w-8 h-8 flex items-center justify-center border border-black mb-2", m.bg, m.color)}>
-                                <m.icon size={16} />
-                            </div>
-                            <div>
-                                <h2 className="text-3xl font-bold">{m.value}</h2>
-                                <p className="text-sm text-gray-500 font-medium">{m.label}</p>
-                            </div>
-                        </div>
-                    ))}
+                    <StatsCard label="Total Bookings" value={stats.totalBookings} icon={LayoutDashboard} color="text-blue-600" bg="bg-blue-50" />
+                    <StatsCard label="Completed" value={stats.completedBookings} icon={CheckCircle} color="text-green-600" bg="bg-green-50" />
+                    <StatsCard label="Active Providers" value={stats.activeProviders} icon={Users} color="text-purple-600" bg="bg-purple-50" />
+                    <StatsCard label="Pending Apps" value={stats.pendingApps} icon={FileText} color="text-orange-600" bg="bg-orange-50" />
                 </div>
 
                 {/* Navigation Tabs */}

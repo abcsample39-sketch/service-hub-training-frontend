@@ -1,7 +1,12 @@
+'use client';
 import Link from "next/link";
 import { Button } from "../ui/button";
+import { useAuth } from "@/context/AuthContext";
+import { LogOut, User } from "lucide-react";
 
 export function Header() {
+    const { user, signInWithGoogle, logout } = useAuth();
+
     return (
         <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white">
             <div className="container mx-auto flex h-16 items-center px-4">
@@ -28,10 +33,24 @@ export function Header() {
 
                 {/* Right: Buttons */}
                 <div className="flex flex-1 items-center justify-end gap-4">
-                    <Button variant="outline" size="sm" className="border-black text-black hover:bg-gray-100 rounded-sm">
-                        Provider Portal
-                    </Button>
-                    <Link href="/admin/applications" className="bg-black text-white hover:bg-black/90 rounded-sm px-8 py-2">
+                    {user ? (
+                        <div className="flex items-center gap-4">
+                            <Link href="/profile" className="flex items-center gap-2 font-bold hover:underline">
+                                <User className="w-4 h-4" />
+                                <span className="hidden sm:inline">{user.displayName || 'User'}</span>
+                            </Link>
+                            <Button onClick={logout} variant="outline" size="sm" className="border-black text-black hover:bg-gray-100 rounded-sm">
+                                <LogOut className="w-4 h-4 mr-2" />
+                                Logout
+                            </Button>
+                        </div>
+                    ) : (
+                        <Button onClick={signInWithGoogle} className="bg-black text-white hover:bg-black/90 rounded-sm px-6">
+                            Login with Google
+                        </Button>
+                    )}
+
+                    <Link href="/admin/applications" className="text-xs font-bold uppercase border-2 border-black px-2 py-1 rounded hover:bg-gray-100 hidden lg:block">
                         Admin
                     </Link>
                 </div>

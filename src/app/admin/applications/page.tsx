@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { Check, X, FileText, MapPin, Phone, Mail, Clock } from 'lucide-react';
 import { getToken } from '@/lib/auth';
 
-type ApplicationStatus = 'PENDING' | 'APPROVED' | 'REJECTED'; // Updated casing to match backend enum
+type ApplicationStatus = 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED'; // Updated casing to match backend enum
 
 interface Application {
     id: string;
@@ -118,7 +118,7 @@ export default function AdminApplicationsPage() {
                                 </div>
                             </div>
 
-                            {app.status !== 'PENDING' && (
+                            {app.status !== 'PENDING_APPROVAL' && (
                                 <div className={cn(
                                     "px-3 py-1 text-xs font-bold uppercase tracking-wider text-white",
                                     app.status === 'APPROVED' ? "bg-black" : "bg-red-500"
@@ -126,7 +126,7 @@ export default function AdminApplicationsPage() {
                                     {app.status}
                                 </div>
                             )}
-                            {app.status === 'PENDING' && (
+                            {app.status === 'PENDING_APPROVAL' && (
                                 <div className="px-3 py-1 text-xs font-bold uppercase tracking-wider border border-gray-300 text-gray-500">
                                     Pending
                                 </div>
@@ -179,7 +179,7 @@ export default function AdminApplicationsPage() {
                                 <FileText className="w-4 h-4 mr-2" /> More Details
                             </Button>
 
-                            {app.status === 'PENDING' && (
+                            {app.status === 'PENDING_APPROVAL' && (
                                 <>
                                     <Button
                                         onClick={() => handleStatusUpdate(app.id, 'APPROVED')}

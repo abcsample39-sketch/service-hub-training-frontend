@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { io, Socket } from 'socket.io-client';
+import { API_URL } from '@/lib/api';
 
 interface Message {
     id: string;
@@ -32,7 +33,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     currentUser: null,
 
     connectSocket: () => {
-        const socket = io('http://localhost:3001'); // Backend URL
+        const socket = io(API_URL); // Backend URL
         set({ socket });
 
         socket.on('newMessage', (msg: Message) => {
@@ -57,7 +58,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
         // Fetch History
         try {
-            const res = await fetch(`http://localhost:3001/chat/${bookingId}`);
+            const res = await fetch(`${API_URL}/chat/${bookingId}`);
             if (res.ok) {
                 const msgs = await res.json();
                 set({ messages: msgs });

@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import { useEffect, useState } from 'react';
 import { MapPin } from 'lucide-react';
+import { API_URL } from '@/lib/api';
 
 const schema = z.object({
     name: z.string().min(2, "Name is required"),
@@ -47,7 +48,7 @@ export default function StepDetails() {
             if (!user) return;
             try {
                 const token = await user.getIdToken();
-                const res = await fetch('http://localhost:3001/users/addresses', {
+                const res = await fetch(`${API_URL}/users/addresses`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (res.ok) {

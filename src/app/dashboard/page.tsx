@@ -7,6 +7,7 @@ import { ChatOverlay } from '@/components/chat/ChatOverlay';
 import { format } from 'date-fns';
 import { MessageSquare, Calendar, Clock, MapPin } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { API_URL } from '@/lib/api';
 
 export default function CustomerDashboard() {
     const [activeTab, setActiveTab] = useState<'upcoming' | 'completed' | 'cancelled'>('upcoming');
@@ -17,7 +18,7 @@ export default function CustomerDashboard() {
     const MOCK_USER_ID = 'p1'; // Reusing P1 for demo, ideally real auth
 
     useEffect(() => {
-        fetch(`http://localhost:3001/bookings/customer/${MOCK_USER_ID}`)
+        fetch(`${API_URL}/bookings/customer/${MOCK_USER_ID}`)
             .then(res => res.json())
             .then(data => setBookings(data))
             .catch(err => console.error(err));

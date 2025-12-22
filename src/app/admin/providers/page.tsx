@@ -3,12 +3,13 @@ import { useEffect, useState } from 'react';
 import { User, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { API_URL } from '@/lib/api';
 
 export default function ProvidersPage() {
     const [providers, setProviders] = useState<any[]>([]);
 
     const fetchProviders = () => {
-        fetch('http://localhost:3001/admin/providers')
+        fetch(`${API_URL}/admin/providers`)
             .then(res => res.json())
             .then(data => setProviders(data))
             .catch(err => console.error(err));
@@ -21,7 +22,7 @@ export default function ProvidersPage() {
     const toggleStatus = async (providerId: string, currentStatus: string) => {
         const newStatus = currentStatus === 'APPROVED' ? 'INACTIVE' : 'APPROVED';
         try {
-            const res = await fetch(`http://localhost:3001/admin/providers/${providerId}/status`, {
+            const res = await fetch(`${API_URL}/admin/providers/${providerId}/status`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: newStatus })

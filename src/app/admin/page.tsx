@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Activity, CreditCard, Users, Clock } from 'lucide-react';
+import { API_URL } from '@/lib/api';
 
 export default function AdminDashboard() {
     const [stats, setStats] = useState({
@@ -14,7 +15,7 @@ export default function AdminDashboard() {
     });
 
     useEffect(() => {
-        fetch('http://localhost:3001/admin/dashboard')
+        fetch(`${API_URL}/admin/dashboard`)
             .then(res => res.json())
             .then(data => setStats(data))
             .catch(err => console.error(err));

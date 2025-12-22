@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { API_URL } from '@/lib/api';
 
 interface AdminBooking {
     id: string;
@@ -15,7 +16,7 @@ export default function BookingsPage() {
     const [bookings, setBookings] = useState<AdminBooking[]>([]);
 
     useEffect(() => {
-        fetch('http://localhost:3001/admin/bookings')
+        fetch(`${API_URL}/admin/bookings`)
             .then(res => res.json())
             .then(data => setBookings(data))
             .catch(err => console.error(err));

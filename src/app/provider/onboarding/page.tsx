@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { Check } from 'lucide-react';
+import { API_URL } from '@/lib/api';
 
 const SERVICES_LIST = [
     'Cleaning', 'Plumbing', 'Electrical',
@@ -42,7 +43,7 @@ export default function ProviderOnboardingPage() {
         }
 
         try {
-            const res = await fetch("http://localhost:3001/providers/onboarding", {
+            const res = await fetch(`${API_URL}/providers/onboarding`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

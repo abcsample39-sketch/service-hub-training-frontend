@@ -1,5 +1,16 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import { AdminTabs } from '@/components/admin/AdminTabs';
-import { Search } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Search, Plus, Pencil, Trash, X } from 'lucide-react';
+import { getToken } from '@/lib/auth';
+import { API_URL } from '@/lib/api';
+import type { Service, Category } from '@/types';
+
+interface ServiceCategory extends Category {
+    description?: string;
+}
 
 export default function AdminServicesPage() {
     const [services, setServices] = useState<Service[]>([]);
@@ -16,10 +27,9 @@ export default function AdminServicesPage() {
         image: ''
     });
 
-    // ... fetchCategories and fetchServices (keep implementation) ...
     const fetchCategories = async () => {
         try {
-            const res = await fetch("http://localhost:3001/services/categories");
+            const res = await fetch(`${API_URL}/services/categories`);
             if (res.ok) {
                 const data = await res.json();
                 setCategories(data);
@@ -32,7 +42,7 @@ export default function AdminServicesPage() {
 
     const fetchServices = async () => {
         try {
-            const res = await fetch("http://localhost:3001/services");
+            const res = await fetch(`${API_URL}/services`);
             if (res.ok) {
                 const data = await res.json();
                 setServices(data);
@@ -48,7 +58,6 @@ export default function AdminServicesPage() {
         fetchCategories();
     }, []);
 
-    // Filter services when search query changes
     useEffect(() => {
         if (!searchQuery) {
             setFilteredServices(services);
@@ -68,7 +77,7 @@ export default function AdminServicesPage() {
         if (!token) return;
 
         try {
-            const res = await fetch("http://localhost:3001/services", {
+            const res = await fetch(`${API_URL}/services`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -93,17 +102,6 @@ export default function AdminServicesPage() {
 
     return (
         <div className="space-y-6">
-            {/* Page Header */}
-            <div className="flex items-center justify-between mb-8">
-                <h1 className="text-2xl font-black uppercase tracking-tight">Admin Panel</h1>
-                <Button variant="outline" className="rounded-none border-2 border-black font-bold uppercase text-xs">
-                    Main Site
-                </Button>
-            </div>
-
-            {/* Navigation Tabs */}
-            <AdminTabs />
-
             {/* Actions Bar */}
             <div className="flex flex-col md:flex-row justify-between items-center gap-4 border-2 border-black p-4 bg-white">
                 <div className="relative w-full md:w-96">
@@ -122,14 +120,14 @@ export default function AdminServicesPage() {
             </div>
 
             {/* Services Table */}
-            <div className="bg-white border-2 border-t-0 border-black mt-[-2px]">
+            <div className="bg-white border-2 border-black">
                 <table className="w-full text-sm text-left">
                     <thead className="bg-gray-50 text-xs uppercase font-bold text-gray-700 border-b-2 border-black">
                         <tr>
                             <th className="px-6 py-3">Service</th>
                             <th className="px-6 py-3">Category</th>
                             <th className="px-6 py-3">Price</th>
-                            <th className="px-6 py-3">Rating</th>
+                            <th className="px-6 py-3">Duration</th>
                             <th className="px-6 py-3 text-right">Actions</th>
                         </tr>
                     </thead>
@@ -143,11 +141,7 @@ export default function AdminServicesPage() {
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 font-bold">₹{service.price}</td>
-                                <td className="px-6 py-4 font-bold flex items-center">
-                                    {/* Using logic for rating if undefined, default to 0 in display */}
-                                    {/* @ts-ignore - rating might not be in type yet if not updated locally */}
-                                    {service.rating || '0.0'} ★
-                                </td>
+                                <td className="px-6 py-4">{service.duration} mins</td>
                                 <td className="px-6 py-4 text-right">
                                     <div className="flex justify-end gap-2">
                                         <Button size="icon" variant="outline" className="h-8 w-8 border-2 border-black rounded-sm hover:bg-black hover:text-white transition-all">
@@ -226,15 +220,6 @@ export default function AdminServicesPage() {
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-xs font-bold uppercase mb-1">Image URL (Optional)</label>
-                                <input
-                                    type="url"
-                                    className="w-full border-2 border-black p-2 text-sm focus:outline-none focus:ring-1 focus:ring-black"
-                                    value={formData.image}
-                                    onChange={e => setFormData({ ...formData, image: e.target.value })}
-                                />
-                            </div>
-                            <div>
                                 <label className="block text-xs font-bold uppercase mb-1">Description</label>
                                 <textarea
                                     className="w-full border-2 border-black p-2 text-sm focus:outline-none focus:ring-1 focus:ring-black"
@@ -252,13 +237,4 @@ export default function AdminServicesPage() {
             )}
         </div>
     );
-}
-
-function X({ className }: { className?: string }) {
-    return (
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-            <path d="M18 6 6 18" />
-            <path d="m6 6 12 12" />
-        </svg>
-    )
 }

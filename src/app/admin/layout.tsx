@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { LayoutDashboard, CheckCircle, Users, FileText, Home, ArrowRight } from 'lucide-react';
+import { API_URL } from '@/lib/api';
 
 const TABS = [
     { name: 'Services', href: '/admin/services' },
@@ -40,7 +41,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     useEffect(() => {
         // Fetch stats
-        fetch('http://localhost:3001/admin/dashboard', {
+        fetch(`${API_URL}/admin/dashboard`, {
             headers: {
                 // 'Authorization': `Bearer ${token}` // TODO: Add Auth Token from store
             }

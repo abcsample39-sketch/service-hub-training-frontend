@@ -1,28 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Header } from '@/components/layout/Header';
+import { API_URL } from '@/lib/api';
+import type { Service, Category } from '@/types';
 
-interface Service {
-    id: string;
-    name: string;
-    description: string;
-    price: string;
-    duration: number;
-    categoryId: string;
-    categoryName?: string;
-}
+// Types imported from @/types
 
-interface Category {
-    id: string;
-    name: string;
-}
-
-export default function ServicesPage() {
+function ServicesContent() {
     const [services, setServices] = useState<Service[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
@@ -41,7 +30,7 @@ export default function ServicesPage() {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const res = await fetch("http://localhost:3001/services/categories");
+                const res = await fetch(`${API_URL}/services/categories`);
                 if (res.ok) setCategories(await res.json());
             } catch (err) {
                 console.error("Failed to load categories", err);
@@ -58,7 +47,7 @@ export default function ServicesPage() {
                 if (searchTerm) params.append('search', searchTerm);
                 if (activeCategory) params.append('categoryId', activeCategory);
 
-                const res = await fetch(`http://localhost:3001/services?${params.toString()}`);
+                const res = await fetch(`${API_URL}/services?${params.toString()}`);
                 if (res.ok) {
                     setServices(await res.json());
                 }
@@ -86,9 +75,7 @@ export default function ServicesPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
-            <Header />
-
-            <main className="container mx-auto px-4 py-8 flex-grow">
+            <main className="flex-grow">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                     <div>
                         <h1 className="text-4xl font-black uppercase tracking-tighter mb-2">Our Services</h1>
@@ -153,7 +140,7 @@ export default function ServicesPage() {
                                         <div className="bg-gray-100 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-gray-600">
                                             {service.categoryName || 'Service'}
                                         </div>
-                                        <div className="font-black text-xl">${service.price}</div>
+                                        <div className="font-black text-xl">₹{service.price}</div>
                                     </div>
 
                                     <div>
@@ -172,9 +159,11 @@ export default function ServicesPage() {
                                 </div>
 
                                 <div className="p-4 border-t-2 border-black bg-gray-50">
-                                    <Button className="w-full bg-black text-white rounded-none uppercase font-bold h-10 hover:translate-x-1 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] transition-all">
-                                        Book Now
-                                    </Button>
+                                    <Link href={`/services/${service.id}`}>
+                                        <Button className="w-full bg-black text-white rounded-none uppercase font-bold h-10 hover:translate-x-1 hover:-translate-y-1 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)] transition-all">
+                                            Book Now
+                                        </Button>
+                                    </Link>
                                 </div>
                             </div>
                         ))}
@@ -208,4 +197,16 @@ function ClockIcon({ className }: { className?: string }) {
             <polyline points="12 6 12 12 16 14" />
         </svg>
     )
+}
+
+export default function ServicesPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="animate-spin w-8 h-8 border-4 border-black border-t-transparent rounded-full"></div>
+            </div>
+        }>
+            <ServicesContent />
+        </Suspense>
+    );
 }

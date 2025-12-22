@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { API_URL } from '@/lib/api';
 
-export default function SignupPage() {
+function SignupForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const isProviderSignup = searchParams.get("role") === "provider";
@@ -44,7 +45,7 @@ export default function SignupPage() {
         setLoading(true);
 
         try {
-            const res = await fetch("http://localhost:3001/auth/register", {
+            const res = await fetch(`${API_URL}/auth/register`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -233,5 +234,17 @@ export default function SignupPage() {
                 </form>
             </div>
         </div>
+    );
+}
+
+export default function SignupPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="animate-spin w-8 h-8 border-4 border-black border-t-transparent rounded-full"></div>
+            </div>
+        }>
+            <SignupForm />
+        </Suspense>
     );
 }

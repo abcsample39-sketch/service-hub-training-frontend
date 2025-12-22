@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { JobCard } from '@/components/provider/JobCard';
 import { LayoutDashboard, CheckSquare, Clock, IndianRupee } from 'lucide-react';
+import { API_URL } from '@/lib/api';
 
 export default function ProviderDashboard() {
     const [activeTab, setActiveTab] = useState<'new' | 'active' | 'history'>('new');
@@ -17,7 +18,7 @@ export default function ProviderDashboard() {
     const fetchBookings = async () => {
         try {
             // Fetch bookings for this provider
-            const res = await fetch(`http://localhost:3001/bookings/provider/${PROVIDER_ID}`);
+            const res = await fetch(`${API_URL}/bookings/provider/${PROVIDER_ID}`);
             if (res.ok) {
                 const data = await res.json();
                 setBookings(data);
@@ -35,7 +36,7 @@ export default function ProviderDashboard() {
 
     const handleAction = async (action: string, bookingId: string) => {
         try {
-            const res = await fetch(`http://localhost:3001/bookings/${bookingId}/status`, {
+            const res = await fetch(`${API_URL}/bookings/${bookingId}/status`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: action, providerId: PROVIDER_ID })

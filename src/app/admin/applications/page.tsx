@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Check, X, FileText, MapPin, Phone, Mail, Clock } from 'lucide-react';
 import { getToken } from '@/lib/auth';
+import { API_URL } from '@/lib/api';
 
 type ApplicationStatus = 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED'; // Updated casing to match backend enum
 
@@ -43,7 +44,7 @@ export default function AdminApplicationsPage() {
         if (!token) return;
 
         try {
-            const res = await fetch("http://localhost:3001/admin/applications", {
+            const res = await fetch(`${API_URL}/admin/applications`, {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             if (res.ok) {
@@ -77,7 +78,7 @@ export default function AdminApplicationsPage() {
         if (!token) return;
 
         try {
-            const res = await fetch(`http://localhost:3001/admin/applications/${id}`, {
+            const res = await fetch(`${API_URL}/admin/applications/${id}`, {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",

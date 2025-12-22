@@ -3,6 +3,7 @@
 import { useBookingStore } from '@/store/booking-store';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+import { API_URL } from '@/lib/api';
 
 export default function StepConfirm({ service, provider }: { service: any, provider: any }) {
     const { customerDetails, selectedDate, selectedTimeSlot, setStep, setSuccess, providerId, serviceId } = useBookingStore();
@@ -30,7 +31,7 @@ export default function StepConfirm({ service, provider }: { service: any, provi
                 address: customerDetails?.address
             };
 
-            const res = await fetch('http://localhost:3001/bookings', {
+            const res = await fetch(`${API_URL}/bookings`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)

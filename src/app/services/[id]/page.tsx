@@ -2,30 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Header } from '@/components/layout/Header';
+
 import { Button } from '@/components/ui/button';
-import { Star, MapPin, Clock } from 'lucide-react';
+import { Star, Clock } from 'lucide-react';
 import { useBookingStore } from '@/store/booking-store';
 import BookingWizard from '@/components/booking/BookingWizard';
-
-interface ProviderProfile {
-    id: string; // profile id
-    userId: string;
-    businessName: string;
-    bio: string;
-    rating: string;
-    experience: number;
-    address?: string;
-}
-
-interface Service {
-    id: string;
-    name: string;
-    description: string;
-    price: string; // DB returns string for decimal
-    duration: number;
-    categoryId: string;
-}
+import { API_URL } from '@/lib/api';
+import type { Service, ProviderProfile } from '@/types';
 
 export default function ServiceDetailPage() {
     const { id } = useParams();
@@ -45,26 +28,30 @@ export default function ServiceDetailPage() {
         const fetchData = async () => {
             try {
                 // 1. Fetch Service Details
-                // TODO: Create a single service endpoint or filter existing list
-                const servicesRes = await fetch('http://localhost:3001/services');
+                const servicesRes = await fetch(`${API_URL}/services`);
                 if (servicesRes.ok) {
                     const allServices = await servicesRes.json();
-                    const found = allServices.find((s: any) => s.id === id);
+                    const found = allServices.find((s: Service) => s.id === id);
                     setService(found || null);
                     if (found) setServiceId(found.id);
                 }
 
-                // 2. Fetch Providers (Mocking category filter for now as backend endpoint might need tuning)
-                // Ideally: GET /providers?categoryId=...
-                // For now, let's assume we fetch all and frontend filters or just show all for demo
-                // Wait, I didn't make a public /providers endpoint yet. 
-                // I'll leave this empty or mock it for the MVP step.
-                // Actually, the user wants me to implement the flow. I need providers.
-                // I'll add a temporary mock list if fetch fails, or rely on finding them.
-                setProviders([
-                    { id: 'p1', userId: 'u1', businessName: 'CleanPro Services', bio: 'Expert cleaning', rating: '4.8', experience: 5, address: '2.5 km away' } as any,
-                    { id: 'p2', userId: 'u2', businessName: 'QuickFix Plumbers', bio: '24/7 Plumbing', rating: '4.5', experience: 10, address: '5.0 km away' } as any
-                ]);
+                // 2. Fetch Providers - Try real endpoint, fallback to mock
+                try {
+                    const providersRes = await fetch(`${API_URL}/providers`);
+                    if (providersRes.ok) {
+                        const allProviders = await providersRes.json();
+                        setProviders(allProviders);
+                    } else {
+                        throw new Error('Providers endpoint not available');
+                    }
+                } catch {
+                    // Fallback mock data if providers endpoint doesn't exist yet
+                    setProviders([
+                        { id: 'p1', userId: 'u1', businessName: 'CleanPro Services', bio: 'Expert cleaning', rating: '4.8', experience: 5, address: '2.5 km away' },
+                        { id: 'p2', userId: 'u2', businessName: 'QuickFix Plumbers', bio: '24/7 Plumbing', rating: '4.5', experience: 10, address: '5.0 km away' }
+                    ] as ProviderProfile[]);
+                }
 
             } catch (err) {
                 console.error(err);
@@ -91,8 +78,7 @@ export default function ServiceDetailPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
-            <Header />
-            <main className="container mx-auto px-4 py-8 flex-grow">
+            <main className="flex-grow">
                 <Button variant="ghost" className="mb-6 pl-0 hover:bg-transparent font-bold" onClick={() => router.back()}>
                     ← Back to Services
                 </Button>

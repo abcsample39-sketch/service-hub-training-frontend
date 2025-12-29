@@ -17,6 +17,10 @@ export interface User {
     phoneNumber?: string;
     createdAt?: string;
     updatedAt?: string;
+    // Firebase auth fields (for unified auth support)
+    displayName?: string;
+    photoURL?: string;
+    firebaseUid?: string;
 }
 
 export interface AuthUser extends User {
@@ -49,6 +53,8 @@ export interface Service {
 // Provider Types
 // ============================================
 
+export type ProviderStatus = 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'INACTIVE';
+
 export interface ProviderProfile {
     id: string;
     userId: string;
@@ -57,7 +63,7 @@ export interface ProviderProfile {
     rating: string;
     experience: number;
     address?: string;
-    status?: 'Pending' | 'Approved' | 'Rejected';
+    status?: ProviderStatus;
 }
 
 export interface ProviderApplication {
@@ -67,7 +73,7 @@ export interface ProviderApplication {
     address: string;
     experience: number;
     services: string[];
-    status: 'Pending' | 'Approved' | 'Rejected';
+    status: ProviderStatus;
     createdAt: string;
     user?: User;
 }

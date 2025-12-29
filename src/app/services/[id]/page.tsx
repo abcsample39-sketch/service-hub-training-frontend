@@ -8,7 +8,7 @@ import { Star, Clock } from 'lucide-react';
 import { useBookingStore } from '@/store/booking-store';
 import BookingWizard from '@/components/booking/BookingWizard';
 import BookingWidget from '@/components/booking/BookingWidget';
-import { API_URL } from '@/lib/api';
+import { apiFetch, authFetch } from '@/lib/api';
 import type { Service, ProviderProfile } from '@/types';
 
 import { useAuth } from '@/context/AuthContext';
@@ -32,23 +32,14 @@ export default function ServiceDetailPage() {
         const fetchData = async () => {
             try {
                 // 1. Fetch Service Details
-                const servicesRes = await fetch(`${API_URL}/services`);
-                if (servicesRes.ok) {
-                    const allServices = await servicesRes.json();
-                    const found = allServices.find((s: Service) => s.id === id);
-                    setService(found || null);
-                    if (found) setServiceId(found.id);
-                }
+                const serviceData = await apiFetch<Service>(`services/${id}`);
+                setService(serviceData);
+                if (serviceData) setServiceId(serviceData.id);
 
                 // 2. Fetch Providers - Try real endpoint, fallback to mock
                 try {
-                    const providersRes = await fetch(`${API_URL}/providers`);
-                    if (providersRes.ok) {
-                        const allProviders = await providersRes.json();
-                        setProviders(allProviders);
-                    } else {
-                        throw new Error('Providers endpoint not available');
-                    }
+                    const allProviders = await apiFetch<ProviderProfile[]>('providers');
+                    setProviders(allProviders);
                 } catch {
                     // Fallback mock data if providers endpoint doesn't exist yet
                     setProviders([
@@ -115,7 +106,7 @@ export default function ServiceDetailPage() {
                                 <div className="flex items-center gap-6 font-bold text-lg">
                                     <div className="flex items-center gap-2">
                                         <Clock className="w-5 h-5" />
-                                        {service.duration} hours
+                                        {service.duration} mins
                                     </div>
                                     <div className="text-2xl">
                                         ₹{service.price} <span className="text-sm text-gray-500 font-normal">onwards</span>
@@ -256,12 +247,8 @@ export default function ServiceDetailPage() {
                                                 const dateTimeStr = `${details.date} ${details.time}`;
                                                 const bookingDate = new Date(dateTimeStr).toISOString();
 
-                                                const res = await fetch(`${API_URL}/bookings`, {
+                                                await authFetch('bookings', {
                                                     method: 'POST',
-                                                    headers: {
-                                                        'Content-Type': 'application/json',
-                                                        // 'Authorization': `Bearer ${token}` // TODO: Add auth token if needed
-                                                    },
                                                     body: JSON.stringify({
                                                         providerId: selectedProviderId,
                                                         serviceId: service.id,
@@ -273,16 +260,11 @@ export default function ServiceDetailPage() {
                                                     }),
                                                 });
 
-                                                if (res.ok) {
-                                                    alert('Booking Confirmed & Saved!');
-                                                    router.push('/dashboard'); // Redirect to dashboard
-                                                } else {
-                                                    const err = await res.json();
-                                                    alert('Failed to save booking: ' + (err.message || 'Unknown error'));
-                                                }
-                                            } catch (error) {
+                                                alert('Booking Confirmed & Saved!');
+                                                router.push('/dashboard'); // Redirect to dashboard
+                                            } catch (error: any) {
                                                 console.error('Booking error:', error);
-                                                alert('An error occurred while saving the booking.');
+                                                alert('An error occurred while saving the booking: ' + error.message);
                                             }
                                         }}
                                     />

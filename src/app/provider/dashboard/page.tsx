@@ -4,28 +4,27 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { JobCard } from '@/components/provider/JobCard';
 import { LayoutDashboard, CheckSquare, Clock, IndianRupee } from 'lucide-react';
-import { API_URL } from '@/lib/api';
+import { apiFetch, authFetch } from '@/lib/api';
 import { AddServiceModal } from '@/components/provider/AddServiceModal';
 
+import { useAuth } from '@/context/AuthContext';
+
 export default function ProviderDashboard() {
+    const { user, loading: authLoading } = useAuth();
     const [activeTab, setActiveTab] = useState<'new' | 'active' | 'history' | 'services'>('new');
     const [bookings, setBookings] = useState<any[]>([]);
     const [services, setServices] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isAddServiceModalOpen, setIsAddServiceModalOpen] = useState(false);
 
-    // Mock Provider ID for now (Assuming we are "p1" or similar from earlier setup)
-    // In real app, get from Auth Context
-    const PROVIDER_ID = 'p1';
+    const PROVIDER_ID = user?.id;
 
     const fetchBookings = async () => {
+        if (!PROVIDER_ID) return;
         try {
             // Fetch bookings for this provider
-            const res = await fetch(`${API_URL}/bookings/provider/${PROVIDER_ID}`);
-            if (res.ok) {
-                const data = await res.json();
-                setBookings(data);
-            }
+            const data = await authFetch<any[]>(`bookings/provider/${PROVIDER_ID}`);
+            setBookings(data);
         } catch (error) {
             console.error(error);
         }
@@ -33,42 +32,37 @@ export default function ProviderDashboard() {
 
     const fetchServices = async () => {
         try {
-            const res = await fetch(`${API_URL}/services`);
-            if (res.ok) {
-                const data = await res.json();
-                setServices(data);
-            }
+            const data = await apiFetch<any[]>('services');
+            setServices(data);
         } catch (error) {
             console.error(error);
         }
     };
 
     const fetchAllData = async () => {
+        if (!PROVIDER_ID) return;
         setLoading(true);
         await Promise.all([fetchBookings(), fetchServices()]);
         setLoading(false);
     };
 
     useEffect(() => {
-        fetchAllData();
-    }, []);
+        if (!authLoading && user) {
+            fetchAllData();
+        }
+    }, [user, authLoading]);
 
     const handleAction = async (action: string, bookingId: string) => {
         try {
-            const res = await fetch(`${API_URL}/bookings/${bookingId}/status`, {
+            await authFetch(`bookings/${bookingId}/status`, {
                 method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: action, providerId: PROVIDER_ID })
             });
-
-            if (res.ok) {
-                // Refresh data
-                fetchBookings();
-            } else {
-                alert('Failed to update status');
-            }
+            // Refresh data
+            fetchBookings();
         } catch (err) {
             console.error(err);
+            alert('Failed to update status');
         }
     };
 

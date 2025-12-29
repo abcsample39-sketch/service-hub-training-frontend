@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Check, X, FileText, MapPin, Phone, Mail, Clock } from 'lucide-react';
-import { getToken } from '@/lib/auth';
-import { API_URL } from '@/lib/api';
+import { authFetch } from '@/lib/api';
 
 type ApplicationStatus = 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED'; // Updated casing to match backend enum
 
@@ -40,30 +39,22 @@ export default function AdminApplicationsPage() {
     const [applications, setApplications] = useState<Application[]>([]);
 
     const fetchApplications = async () => {
-        const token = getToken();
-        if (!token) return;
-
         try {
-            const res = await fetch(`${API_URL}/admin/applications`, {
-                headers: { "Authorization": `Bearer ${token}` }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                // Map backend response to UI Application interface
-                const mappedApps: Application[] = data.map((item: BackendApplication) => ({
-                    id: item.id,
-                    businessName: item.businessName || item.user.name, // Fallback
-                    email: item.user.email,
-                    phone: item.user.phoneNumber || 'N/A',
-                    experience: item.experience || 0,
-                    address: item.address || '',
-                    appliedDate: new Date().toLocaleDateString(), // TODO: add createdAt to profile
-                    services: [], // TODO: fetch services
-                    status: item.status,
-                    rejectionReason: item.rejectionReason
-                }));
-                setApplications(mappedApps);
-            }
+            const data = await authFetch<BackendApplication[]>('admin/applications');
+            // Map backend response to UI Application interface
+            const mappedApps: Application[] = data.map((item: BackendApplication) => ({
+                id: item.id,
+                businessName: item.businessName || item.user.name, // Fallback
+                email: item.user.email,
+                phone: item.user.phoneNumber || 'N/A',
+                experience: item.experience || 0,
+                address: item.address || '',
+                appliedDate: new Date().toLocaleDateString(), // TODO: add createdAt to profile
+                services: [], // TODO: fetch services
+                status: item.status,
+                rejectionReason: item.rejectionReason
+            }));
+            setApplications(mappedApps);
         } catch (error) {
             console.error("Failed to fetch applications", error);
         }
@@ -74,25 +65,15 @@ export default function AdminApplicationsPage() {
     }, []);
 
     const handleStatusUpdate = async (id: string, newStatus: ApplicationStatus) => {
-        const token = getToken();
-        if (!token) return;
-
         try {
-            const res = await fetch(`${API_URL}/admin/applications/${id}`, {
+            await authFetch(`admin/applications/${id}`, {
                 method: "PATCH",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
                 body: JSON.stringify({ status: newStatus })
             });
-
-            if (res.ok) {
-                // Update UI optimistically or refetch
-                setApplications(apps => apps.map(app =>
-                    app.id === id ? { ...app, status: newStatus } : app
-                ));
-            }
+            // Update UI optimistically or refetch
+            setApplications(apps => apps.map(app =>
+                app.id === id ? { ...app, status: newStatus } : app
+            ));
         } catch (error) {
             console.error("Failed to update status", error);
         }

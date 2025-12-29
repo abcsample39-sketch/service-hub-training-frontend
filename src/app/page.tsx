@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Clock, Star, Shield, ArrowRight, Sparkles, Droplets, Zap, Scissors, Hammer, Paintbrush, Cog, Wrench } from 'lucide-react';
-import { API_URL } from '@/lib/api';
+import { apiFetch } from '@/lib/api';
 import type { Category, Service } from '@/types';
 
 export default function HomePage() {
@@ -12,8 +12,7 @@ export default function HomePage() {
   const [services, setServices] = useState<Service[]>([]);
 
   useEffect(() => {
-    fetch(`${API_URL}/services/categories`)
-      .then(res => res.json())
+    apiFetch<Category[]>('services/categories')
       .then(data => {
         if (Array.isArray(data)) {
           setCategories(data);
@@ -24,8 +23,7 @@ export default function HomePage() {
       })
       .catch(console.error);
 
-    fetch(`${API_URL}/services`)
-      .then(res => res.json())
+    apiFetch<Service[]>('services')
       .then(data => {
         if (Array.isArray(data)) {
           setServices(data.slice(0, 4));

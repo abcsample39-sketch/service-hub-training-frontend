@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { io, Socket } from 'socket.io-client';
-import { API_URL } from '@/lib/api';
+import { API_URL, authFetch } from '@/lib/api';
 
 interface Message {
     id: string;
@@ -58,11 +58,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
         // Fetch History
         try {
-            const res = await fetch(`${API_URL}/chat/${bookingId}`);
-            if (res.ok) {
-                const msgs = await res.json();
-                set({ messages: msgs });
-            }
+            const msgs = await authFetch<Message[]>(`chat/${bookingId}`);
+            set({ messages: msgs });
         } catch (e) {
             console.error(e);
         }

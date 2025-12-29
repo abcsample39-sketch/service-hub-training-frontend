@@ -7,7 +7,7 @@ import { ChatOverlay } from '@/components/chat/ChatOverlay';
 import { format } from 'date-fns';
 import { MessageSquare, Calendar, Clock, MapPin } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { API_URL } from '@/lib/api';
+import { authFetch } from '@/lib/api';
 
 import { useAuth } from '@/context/AuthContext';
 
@@ -19,8 +19,7 @@ export default function CustomerDashboard() {
 
     useEffect(() => {
         if (user?.id) {
-            fetch(`${API_URL}/bookings/customer/${user.id}`)
-                .then(res => res.json())
+            authFetch<any[]>(`bookings/customer/${user.id}`)
                 .then(data => {
                     if (Array.isArray(data)) {
                         setBookings(data);

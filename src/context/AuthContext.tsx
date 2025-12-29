@@ -4,7 +4,7 @@ import { User as FirebaseUser, onAuthStateChanged, signInWithPopup, signOut } fr
 import { auth, googleProvider } from '../lib/firebase';
 import { useRouter } from 'next/navigation';
 import { User as AppUser } from '../types';
-import { API_URL } from '../lib/api';
+import { API_URL, apiFetch } from '../lib/api';
 
 interface AuthContextType {
     user: AppUser | null;
@@ -52,6 +52,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                     name: currentUser.displayName || '',
                     email: currentUser.email || '',
                     role: 'Customer', // Default role; should be synced with backend
+                    displayName: currentUser.displayName || undefined,
+                    photoURL: currentUser.photoURL || undefined,
+                    firebaseUid: currentUser.uid,
                 };
                 setUser(appUser);
             } else {
@@ -68,23 +71,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const login = async (email: string, password: string) => {
         try {
-            const res = await fetch(`${API_URL}/auth/login`, {
+            const data = await apiFetch<{ access_token: string; user: AppUser }>('auth/login', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
             });
-
-            if (!res.ok) {
-                const error = await res.json();
-                throw new Error(error.message || 'Login failed');
-            }
-
-            const data = await res.json();
             // data = { access_token, user: { id, name, email, role } }
 
+            // Populate displayName from name for consistency
+            const userWithDisplay: AppUser = {
+                ...data.user,
+                displayName: data.user.name,
+            };
+
             localStorage.setItem('token', data.access_token);
-            localStorage.setItem('user', JSON.stringify(data.user));
-            setUser(data.user);
+            localStorage.setItem('user', JSON.stringify(userWithDisplay));
+            setUser(userWithDisplay);
 
             // Redirect based on role
             if (data.user.role === 'Admin') router.push('/admin');
@@ -99,8 +100,45 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const signInWithGoogle = async () => {
         try {
-            await signInWithPopup(auth, googleProvider);
-            router.push('/profile');
+            const result = await signInWithPopup(auth, googleProvider);
+            const firebaseUser = result.user;
+            const token = await firebaseUser.getIdToken();
+
+            // Sync with backend
+            const res = await fetch(`${API_URL}/users/sync`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                // Update local user state with backend data (role etc) and Firebase fields
+                const appUser: AppUser = {
+                    id: data.id, // Use DB ID
+                    name: data.name,
+                    email: data.email,
+                    role: data.role,
+                    displayName: firebaseUser.displayName || data.name,
+                    photoURL: firebaseUser.photoURL || undefined,
+                    firebaseUid: firebaseUser.uid,
+                };
+                setUser(appUser);
+
+                // Store for persistence
+                localStorage.setItem('user', JSON.stringify(appUser));
+
+                // Route based on role
+                if (data.role === 'Admin') router.push('/admin');
+                else if (data.role === 'Provider') router.push('/provider/dashboard');
+                else router.push('/profile');
+            } else {
+                console.error("Failed to sync user");
+                router.push('/profile'); // Fallback
+            }
+
         } catch (error) {
             console.error("Error signing in with Google", error);
         }

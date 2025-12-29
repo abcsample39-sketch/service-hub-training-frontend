@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { API_URL } from '@/lib/api';
+import { apiFetch, apiUrl } from '@/lib/api';
 import type { Service, Category } from '@/types';
 
 // Types imported from @/types
@@ -30,8 +30,8 @@ function ServicesContent() {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const res = await fetch(`${API_URL}/services/categories`);
-                if (res.ok) setCategories(await res.json());
+                const data = await apiFetch<Category[]>('services/categories');
+                setCategories(data);
             } catch (err) {
                 console.error("Failed to load categories", err);
             }
@@ -47,10 +47,8 @@ function ServicesContent() {
                 if (searchTerm) params.append('search', searchTerm);
                 if (activeCategory) params.append('categoryId', activeCategory);
 
-                const res = await fetch(`${API_URL}/services?${params.toString()}`);
-                if (res.ok) {
-                    setServices(await res.json());
-                }
+                const data = await apiFetch<Service[]>(`services?${params.toString()}`);
+                setServices(data);
             } catch (err) {
                 console.error("Failed to load services", err);
             } finally {

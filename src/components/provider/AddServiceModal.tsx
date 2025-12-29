@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { API_URL } from '@/lib/api';
+import { apiFetch, authFetch } from '@/lib/api';
 import { X, Check } from 'lucide-react';
 
 interface Service {
@@ -32,12 +32,9 @@ export function AddServiceModal({ isOpen, onClose, onSuccess }: AddServiceModalP
 
     const fetchServices = async () => {
         try {
-            const res = await fetch(`${API_URL}/services`);
-            if (res.ok) {
-                const data = await res.json();
-                setAvailableServices(data);
-                if (data.length > 0) setSelectedServiceId(data[0].id);
-            }
+            const data = await apiFetch<Service[]>('services');
+            setAvailableServices(data);
+            if (data.length > 0) setSelectedServiceId(data[0].id);
         } catch (error) {
             console.error('Failed to fetch services', error);
         }
@@ -48,22 +45,12 @@ export function AddServiceModal({ isOpen, onClose, onSuccess }: AddServiceModalP
         setLoading(true);
 
         try {
-            const token = localStorage.getItem('token');
-            const res = await fetch(`${API_URL}/providers/services`, {
+            await authFetch('providers/services', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
                 body: JSON.stringify({ serviceId: selectedServiceId }),
             });
-
-            if (res.ok) {
-                onSuccess();
-                onClose();
-            } else {
-                alert('Failed to add service');
-            }
+            onSuccess();
+            onClose();
         } catch (error) {
             console.error('Error adding service:', error);
             alert('An error occurred');

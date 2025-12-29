@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { API_URL } from '@/lib/api';
+import { apiFetch } from '@/lib/api';
 
 function SignupForm() {
     const router = useRouter();
@@ -45,9 +45,8 @@ function SignupForm() {
         setLoading(true);
 
         try {
-            const res = await fetch(`${API_URL}/auth/register`, {
+            await apiFetch('auth/register', {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     name: formData.name,
                     email: formData.email,
@@ -56,25 +55,8 @@ function SignupForm() {
                 }),
             });
 
-            const data = await res.json();
-
-            if (!res.ok) {
-                // Handle array of Zod issues
-                if (Array.isArray(data.errors)) {
-                    throw new Error(data.errors.map((e: any) => e.message).join(", "));
-                }
-                throw new Error(data.message || "Registration failed");
-            }
-
             // Success
             if (isProviderSignup) {
-                // Login logic typically happens here or user logs in. For now, redirect to login is fine,
-                // but user asked to "trigger onboarding flow".
-                // Usually: Auto-login -> Redirect /provider/onboarding.
-                // For now, let's Redirect to Login with a message or params?
-                // Or better: Redirect to /login?role=provider so login knows where to go?
-                // Authentication is stateless (JWT). If backend returns token, we can save it.
-                // Assuming backend currently just registers.
                 alert("Provider Account Created! Please login to complete onboarding.");
                 router.push("/login");
             } else {

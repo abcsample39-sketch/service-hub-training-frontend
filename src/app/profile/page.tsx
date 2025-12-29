@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { User, MapPin, Plus, Mail, Phone } from 'lucide-react';
-import { API_URL } from '@/lib/api';
+import { authFetch } from '@/lib/api';
 import type { Address } from '@/types';
 
 export default function ProfilePage() {
@@ -27,15 +27,8 @@ export default function ProfilePage() {
 
         const fetchAddresses = async () => {
             try {
-                const token = localStorage.getItem('token');
-                if (!token) return;
-
-                const res = await fetch(`${API_URL}/users/addresses`, {
-                    headers: { Authorization: `Bearer ${token}` },
-                });
-                if (res.ok) {
-                    setAddresses(await res.json());
-                }
+                const data = await authFetch<Address[]>('users/addresses');
+                setAddresses(data);
             } catch (err) {
                 console.error('Failed to fetch addresses', err);
             } finally {
@@ -50,22 +43,13 @@ export default function ProfilePage() {
         if (!newAddress.label || !newAddress.address) return;
 
         try {
-            const token = localStorage.getItem('token');
-            const res = await fetch(`${API_URL}/users/addresses`, {
+            const saved = await authFetch<Address>('users/addresses', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
-                },
                 body: JSON.stringify(newAddress),
             });
-
-            if (res.ok) {
-                const saved = await res.json();
-                setAddresses([...addresses, saved]);
-                setNewAddress({ label: '', address: '' });
-                setIsAdding(false);
-            }
+            setAddresses([...addresses, saved]);
+            setNewAddress({ label: '', address: '' });
+            setIsAdding(false);
         } catch (err) {
             console.error('Failed to save address', err);
         }

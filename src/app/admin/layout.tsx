@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { LayoutDashboard, CheckCircle, Users, FileText, Home, ArrowRight } from 'lucide-react';
-import { API_URL } from '@/lib/api';
+import { authFetch } from '@/lib/api';
 
 const TABS = [
     { name: 'Services', href: '/admin/services' },
@@ -41,12 +41,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     useEffect(() => {
         // Fetch stats
-        fetch(`${API_URL}/admin/dashboard`, {
-            headers: {
-                // 'Authorization': `Bearer ${token}` // TODO: Add Auth Token from store
-            }
-        })
-            .then(res => res.json())
+        authFetch<typeof stats>('admin/dashboard')
             .then(data => setStats(data))
             .catch(err => console.error("Failed to fetch admin stats", err));
     }, []);
@@ -84,21 +79,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <div className="flex border-b-2 border-black">
                     {TABS.map((tab) => {
                         const isActive = pathname.startsWith(tab.href);
+                        const isAppTab = tab.name === 'Applications';
+                        const badgeCount = isAppTab ? stats.pendingApps : undefined;
+
                         return (
                             <Link
                                 key={tab.name}
-                                href={tab.href}
+                                href={tab.name === 'Applications' ? '/admin/applications' : tab.href}
                                 className={cn(
                                     "px-8 py-3 font-bold uppercase text-sm border-r border-black relative transition-colors",
                                     isActive ? "bg-black text-white" : "bg-white text-black hover:bg-gray-50"
                                 )}
                             >
                                 {tab.name}
-                                {tab.badge && (
+                                {badgeCount ? (
                                     <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white">
-                                        {tab.badge}
+                                        {badgeCount}
                                     </span>
-                                )}
+                                ) : null}
                             </Link>
                         );
                     })}

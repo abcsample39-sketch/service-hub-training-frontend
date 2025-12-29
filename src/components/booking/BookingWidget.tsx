@@ -7,7 +7,7 @@ import { BookingDetails } from './steps/BookingDetails';
 import { BookingConfirm } from './steps/BookingConfirm';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
-import { API_URL } from '@/lib/api';
+import { apiFetch } from '@/lib/api';
 
 const stripeKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_TYooMQauvdEDq54NiTphI7jx';
 const stripePromise = loadStripe(stripeKey);
@@ -40,19 +40,10 @@ export default function BookingWidget({ serviceName, serviceDuration, providerNa
         // Create PaymentIntent when user reaches Step 3 (or prepares to)
         // Optimization: Create it when entering Step 2 or just before 3
         if (step === 3 && !clientSecret) {
-            fetch(`${API_URL}/payments/create-intent`, {
+            apiFetch<{ clientSecret: string }>('payments/create-intent', {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ amount: price }),
             })
-                .then(async (res) => {
-                    if (!res.ok) {
-                        const errorText = await res.text();
-                        console.error(`Payment intent creation failed: ${res.status} ${res.statusText}`, errorText);
-                        throw new Error(`Failed to create payment intent: ${res.status}`);
-                    }
-                    return res.json();
-                })
                 .then((data) => {
                     if (!data.clientSecret) {
                         console.error("No clientSecret in response:", data);

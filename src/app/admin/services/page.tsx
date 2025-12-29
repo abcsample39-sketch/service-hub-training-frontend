@@ -4,8 +4,7 @@ import { useState, useEffect } from 'react';
 import { AdminTabs } from '@/components/admin/AdminTabs';
 import { Button } from '@/components/ui/button';
 import { Search, Plus, Pencil, Trash, X } from 'lucide-react';
-import { getToken } from '@/lib/auth';
-import { API_URL } from '@/lib/api';
+import { apiFetch, authFetch } from '@/lib/api';
 import type { Service, Category } from '@/types';
 
 interface ServiceCategory extends Category {
@@ -29,12 +28,9 @@ export default function AdminServicesPage() {
 
     const fetchCategories = async () => {
         try {
-            const res = await fetch(`${API_URL}/services/categories`);
-            if (res.ok) {
-                const data = await res.json();
-                setCategories(data);
-                if (data.length > 0) setFormData(prev => ({ ...prev, categoryId: data[0].id }));
-            }
+            const data = await apiFetch<ServiceCategory[]>('services/categories');
+            setCategories(data);
+            if (data.length > 0) setFormData(prev => ({ ...prev, categoryId: data[0].id }));
         } catch (error) {
             console.error("Failed to fetch categories", error);
         }
@@ -42,12 +38,9 @@ export default function AdminServicesPage() {
 
     const fetchServices = async () => {
         try {
-            const res = await fetch(`${API_URL}/services`);
-            if (res.ok) {
-                const data = await res.json();
-                setServices(data);
-                setFilteredServices(data);
-            }
+            const data = await apiFetch<Service[]>('services');
+            setServices(data);
+            setFilteredServices(data);
         } catch (error) {
             console.error("Failed to fetch services", error);
         }
@@ -73,16 +66,10 @@ export default function AdminServicesPage() {
 
     const handleCreateService = async (e: React.FormEvent) => {
         e.preventDefault();
-        const token = getToken();
-        if (!token) return;
 
         try {
-            const res = await fetch(`${API_URL}/services`, {
+            await authFetch('services', {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
                 body: JSON.stringify({
                     ...formData,
                     price: parseFloat(formData.price),
@@ -90,11 +77,9 @@ export default function AdminServicesPage() {
                 })
             });
 
-            if (res.ok) {
-                setIsModalOpen(false);
-                setFormData({ name: '', description: '', price: '', duration: '', categoryId: categories[0]?.id || '', image: '' });
-                fetchServices();
-            }
+            setIsModalOpen(false);
+            setFormData({ name: '', description: '', price: '', duration: '', categoryId: categories[0]?.id || '', image: '' });
+            fetchServices();
         } catch (error) {
             console.error("Failed to create service", error);
         }

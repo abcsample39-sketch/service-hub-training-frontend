@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
 import { useEffect, useState } from 'react';
 import { MapPin } from 'lucide-react';
-import { API_URL } from '@/lib/api';
+import { authFetch } from '@/lib/api';
 
 const schema = z.object({
     name: z.string().min(2, "Name is required"),
@@ -47,14 +47,8 @@ export default function StepDetails() {
         const fetchAddresses = async () => {
             if (!user) return;
             try {
-                const token = await user.getIdToken();
-                const res = await fetch(`${API_URL}/users/addresses`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    setSavedAddresses(data);
-                }
+                const data = await authFetch<SavedAddress[]>('users/addresses');
+                setSavedAddresses(data);
             } catch (e) {
                 console.error("Failed to fetch addresses", e);
             }

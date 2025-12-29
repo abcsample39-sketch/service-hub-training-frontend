@@ -46,6 +46,15 @@ export function Footer() {
                         <li><Link href="#" className="hover:text-white transition-colors">Refund Policy</Link></li>
                     </ul>
                 </div>
+
+                {/* Access Links */}
+                <div>
+                    <h3 className="font-bold mb-6 text-sm uppercase tracking-wider">Access</h3>
+                    <ul className="space-y-4 text-sm text-gray-400">
+                        <li><Link href="/provider/dashboard" className="hover:text-white transition-colors">Provider Portal</Link></li>
+                        <li><Link href="/admin" className="hover:text-white transition-colors">Admin Panel</Link></li>
+                    </ul>
+                </div>
             </div>
 
             {/* Copyright Section */}

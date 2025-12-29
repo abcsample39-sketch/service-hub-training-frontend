@@ -9,31 +9,42 @@ import { MessageSquare, Calendar, Clock, MapPin } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { API_URL } from '@/lib/api';
 
+import { useAuth } from '@/context/AuthContext';
+
 export default function CustomerDashboard() {
+    const { user } = useAuth();
     const [activeTab, setActiveTab] = useState<'upcoming' | 'completed' | 'cancelled'>('upcoming');
     const [bookings, setBookings] = useState<any[]>([]);
     const { openChat } = useChatStore();
 
-    // Mock User ID
-    const MOCK_USER_ID = 'p1'; // Reusing P1 for demo, ideally real auth
-
     useEffect(() => {
-        fetch(`${API_URL}/bookings/customer/${MOCK_USER_ID}`)
-            .then(res => res.json())
-            .then(data => setBookings(data))
-            .catch(err => console.error(err));
-    }, []);
+        if (user?.id) {
+            fetch(`${API_URL}/bookings/customer/${user.id}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        setBookings(data);
+                    } else {
+                        console.error('API did not return an array:', data);
+                        setBookings([]);
+                    }
+                })
+                .catch(err => console.error(err));
+        }
+    }, [user?.id]);
 
     const openBookingChat = (booking: any) => {
-        openChat(booking.id, { id: MOCK_USER_ID, name: 'Current User' });
+        if (user?.id) {
+            openChat(booking.id, { id: user.id, name: user.name || 'Current User' });
+        }
     };
 
-    const filteredBookings = bookings.filter(b => {
+    const filteredBookings = Array.isArray(bookings) ? bookings.filter(b => {
         if (activeTab === 'upcoming') return ['Pending', 'Accepted', 'InProgress'].includes(b.status);
         if (activeTab === 'completed') return ['Completed'].includes(b.status);
         if (activeTab === 'cancelled') return ['Cancelled', 'Rejected'].includes(b.status);
         return false;
-    });
+    }) : [];
 
     return (
         <div className="min-h-screen bg-gray-50 text-black font-sans pb-20">

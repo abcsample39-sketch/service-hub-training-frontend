@@ -7,12 +7,16 @@ import { Button } from '@/components/ui/button';
 import { Star, Clock } from 'lucide-react';
 import { useBookingStore } from '@/store/booking-store';
 import BookingWizard from '@/components/booking/BookingWizard';
+import BookingWidget from '@/components/booking/BookingWidget';
 import { API_URL } from '@/lib/api';
 import type { Service, ProviderProfile } from '@/types';
+
+import { useAuth } from '@/context/AuthContext';
 
 export default function ServiceDetailPage() {
     const { id } = useParams();
     const router = useRouter();
+    const { user } = useAuth(); // Get user from AuthContext
     const [service, setService] = useState<Service | null>(null);
     const [providers, setProviders] = useState<ProviderProfile[]>([]); // In real app, fetch only for this category
     const [loading, setLoading] = useState(true);
@@ -63,9 +67,11 @@ export default function ServiceDetailPage() {
         if (id) fetchData();
     }, [id, reset, setServiceId]);
 
+    const [selectedProviderId, setSelectedProviderId] = useState<string | null>(null);
+
     const handleProviderSelect = (pid: string) => {
-        setProviderId(pid);
-        setIsWizardOpen(true);
+        setSelectedProviderId(pid);
+        // We'll handle the actual Booking Store update inside the widget or when "Continue" is clicked
     };
 
     if (loading) {
@@ -76,46 +82,48 @@ export default function ServiceDetailPage() {
         return <div className="flex justify-center items-center h-screen">Service not found</div>;
     }
 
+    const selectedProvider = providers.find(p => p.id === selectedProviderId);
+
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
-            <main className="flex-grow">
+            <main className="flex-grow container mx-auto px-4 ">
                 <Button variant="ghost" className="mb-6 pl-0 hover:bg-transparent font-bold" onClick={() => router.back()}>
                     ← Back to Services
                 </Button>
-
-                {/* Service Hero */}
-                <div className="border-4 border-black bg-white p-0 mb-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                    <div className="h-64 bg-gray-200 flex items-center justify-center border-b-4 border-black">
-                        {/* Image Placeholder */}
-                        <span className="text-6xl text-gray-400 font-black tracking-widest">IMAGE</span>
-                    </div>
-                    <div className="p-8">
-                        <div className="flex justify-between items-start mb-4">
-                            <h1 className="text-4xl font-black uppercase">{service.name}</h1>
-                            <div className="bg-black text-white px-3 py-1 font-bold flex items-center gap-2">
-                                <Star className="w-4 h-4 fill-current" />
-                                4.8 (203)
-                            </div>
-                        </div>
-                        <p className="text-lg text-gray-600 font-medium mb-6 max-w-2xl">{service.description}</p>
-
-                        <div className="flex items-center gap-6 font-bold text-lg">
-                            <div className="flex items-center gap-2">
-                                <Clock className="w-5 h-5" />
-                                {service.duration} hours
-                            </div>
-                            <div className="text-2xl">
-                                ₹{service.price} <span className="text-sm text-gray-500 font-normal">onwards</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 {/* Content Layout */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
                     {/* Left Column: Details & Reviews */}
                     <div className="lg:col-span-2 space-y-8">
+
+                        {/* Service Hero */}
+                        <div className="border-4 border-black bg-white p-0 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                            <div className="h-64 bg-gray-200 flex items-center justify-center border-b-4 border-black">
+                                <span className="text-6xl text-gray-400 font-black tracking-widest">IMAGE</span>
+                            </div>
+                            <div className="p-8">
+                                <div className="flex justify-between items-start mb-4">
+                                    <h1 className="text-4xl font-black uppercase">{service.name}</h1>
+                                    <div className="bg-black text-white px-3 py-1 font-bold flex items-center gap-2">
+                                        <Star className="w-4 h-4 fill-current" />
+                                        4.8 (203)
+                                    </div>
+                                </div>
+                                <p className="text-lg text-gray-600 font-medium mb-6 max-w-2xl">{service.description}</p>
+
+                                <div className="flex items-center gap-6 font-bold text-lg">
+                                    <div className="flex items-center gap-2">
+                                        <Clock className="w-5 h-5" />
+                                        {service.duration} hours
+                                    </div>
+                                    <div className="text-2xl">
+                                        ₹{service.price} <span className="text-sm text-gray-500 font-normal">onwards</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         {/* What's Included */}
                         <div className="border-4 border-black bg-white p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                             <h3 className="font-black text-xl mb-4 uppercase">What's Included</h3>
@@ -127,6 +135,25 @@ export default function ServiceDetailPage() {
                                     </li>
                                 ))}
                             </ul>
+                        </div>
+
+                        {/* Highlights Section */}
+                        <div className="grid grid-cols-3 gap-4">
+                            <div className="border-4 border-black bg-white p-4 text-center">
+                                <div className="mx-auto w-8 h-8 mb-2 border-2 border-black rounded-full flex items-center justify-center font-bold">✓</div>
+                                <div className="font-black text-sm uppercase">Verified</div>
+                                <div className="text-xs text-gray-500">Background checked</div>
+                            </div>
+                            <div className="border-4 border-black bg-white p-4 text-center">
+                                <div className="mx-auto w-8 h-8 mb-2 border-2 border-black rounded-full flex items-center justify-center font-bold">8</div>
+                                <div className="font-black text-sm uppercase">2000+</div>
+                                <div className="text-xs text-gray-500">Trained professionals</div>
+                            </div>
+                            <div className="border-4 border-black bg-white p-4 text-center">
+                                <div className="mx-auto w-8 h-8 mb-2 border-2 border-black rounded-full flex items-center justify-center font-bold">★</div>
+                                <div className="font-black text-sm uppercase">4.8★</div>
+                                <div className="text-xs text-gray-500">Customer rating</div>
+                            </div>
                         </div>
 
                         {/* Reviews Summary */}
@@ -152,66 +179,120 @@ export default function ServiceDetailPage() {
                         </div>
                     </div>
 
-                    {/* Right Column: Provider Selection */}
+                    {/* Right Column: Sidebar (Conditional) */}
                     <div className="lg:col-span-1">
-                        <div className="bg-gray-100 border-4 border-black p-6 sticky top-8">
-                            <h3 className="font-black text-xl mb-4 uppercase">Available Providers</h3>
-                            <p className="text-sm text-gray-500 mb-4 font-bold">Select a provider to continue booking</p>
+                        <div className="sticky top-24">
+                            {!selectedProviderId ? (
+                                <div className="bg-gray-100 border-4 border-black p-6">
+                                    <h3 className="font-black text-xl mb-4 uppercase">Available Providers</h3>
+                                    <p className="text-sm text-gray-500 mb-4 font-bold">Select a provider to continue booking</p>
 
-                            <div className="space-y-4">
-                                {providers.map(provider => (
-                                    <div key={provider.id} className="bg-white border-2 border-black p-4 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 bg-gray-200 border-2 border-black flex items-center justify-center font-black">
-                                                    {provider.businessName[0]}
+                                    <div className="space-y-4">
+                                        {providers.map(provider => (
+                                            <div key={provider.id} className="bg-white border-2 border-black p-4 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 bg-gray-200 border-2 border-black flex items-center justify-center font-black">
+                                                            {provider.businessName[0]}
+                                                        </div>
+                                                        <div>
+                                                            <div className="font-bold leading-tight">{provider.businessName}</div>
+                                                            <div className="text-xs text-gray-500 font-bold uppercase">Cleaning</div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="bg-black text-white text-xs px-1.5 py-0.5 font-bold flex gap-1">
+                                                        ★ {provider.rating}
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <div className="font-bold leading-tight">{provider.businessName}</div>
-                                                    <div className="text-xs text-gray-500 font-bold uppercase">Cleaning</div>
+
+                                                <div className="text-xs text-green-600 font-bold mb-3 flex gap-3">
+                                                    <span>✔ 324 jobs done</span>
+                                                    <span>📍 {provider.address || 'Nearby'}</span>
                                                 </div>
+
+                                                <div className="text-xs italic bg-gray-50 p-2 border border-gray-200 mb-4 text-gray-500">
+                                                    "Great work, very professional..."
+                                                </div>
+
+                                                <Button
+                                                    className="w-full bg-white text-black border-2 border-black hover:bg-black hover:text-white font-bold uppercase text-xs"
+                                                    onClick={() => handleProviderSelect(provider.id)}
+                                                >
+                                                    Select Provider
+                                                </Button>
                                             </div>
-                                            <div className="bg-black text-white text-xs px-1.5 py-0.5 font-bold flex gap-1">
-                                                ★ {provider.rating}
-                                            </div>
-                                        </div>
-
-                                        <div className="text-xs text-green-600 font-bold mb-3 flex gap-3">
-                                            <span>✔ 324 jobs done</span>
-                                            <span>📍 {provider.address || 'Nearby'}</span>
-                                        </div>
-
-                                        <div className="text-xs italic bg-gray-50 p-2 border border-gray-200 mb-4 text-gray-500">
-                                            "Great work, very professional..."
-                                        </div>
-
+                                        ))}
+                                    </div>
+                                </div>
+                            ) : (
+                                // Show Booking Widget when provider is selected
+                                <div className="space-y-4">
+                                    <div className="bg-black text-white p-3 font-bold text-sm uppercase flex justify-between items-center">
+                                        <span>Selected Provider</span>
                                         <Button
-                                            className="w-full bg-white text-black border-2 border-black hover:bg-black hover:text-white font-bold uppercase text-xs"
-                                            onClick={() => handleProviderSelect(provider.id)}
+                                            variant="ghost"
+                                            size="sm"
+                                            className="text-white hover:text-gray-300 h-auto p-0"
+                                            onClick={() => setSelectedProviderId(null)}
                                         >
-                                            Select Provider
+                                            Change
                                         </Button>
                                     </div>
-                                ))}
-                            </div>
+                                    <BookingWidget
+                                        serviceName={service.name}
+                                        serviceDuration={String(service.duration)}
+                                        providerName={selectedProvider?.businessName || 'Provider'}
+                                        price={Number(service.price)}
+                                        onBack={() => setSelectedProviderId(null)}
+                                        onConfirm={async (details) => {
+                                            if (!user) {
+                                                const currentPath = window.location.pathname;
+                                                router.push(`/login?redirect=${currentPath}`);
+                                                return;
+                                            }
+
+                                            try {
+                                                // Combine date and time to ISO string
+                                                const dateTimeStr = `${details.date} ${details.time}`;
+                                                const bookingDate = new Date(dateTimeStr).toISOString();
+
+                                                const res = await fetch(`${API_URL}/bookings`, {
+                                                    method: 'POST',
+                                                    headers: {
+                                                        'Content-Type': 'application/json',
+                                                        // 'Authorization': `Bearer ${token}` // TODO: Add auth token if needed
+                                                    },
+                                                    body: JSON.stringify({
+                                                        providerId: selectedProviderId,
+                                                        serviceId: service.id,
+                                                        date: bookingDate,
+                                                        customerName: details.name,
+                                                        customerEmail: details.email || user.email || 'no-email@test.com',
+                                                        customerPhone: details.phone,
+                                                        address: details.address,
+                                                    }),
+                                                });
+
+                                                if (res.ok) {
+                                                    alert('Booking Confirmed & Saved!');
+                                                    router.push('/dashboard'); // Redirect to dashboard
+                                                } else {
+                                                    const err = await res.json();
+                                                    alert('Failed to save booking: ' + (err.message || 'Unknown error'));
+                                                }
+                                            } catch (error) {
+                                                console.error('Booking error:', error);
+                                                alert('An error occurred while saving the booking.');
+                                            }
+                                        }}
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
 
                 </div>
             </main>
-
-            {isWizardOpen && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-                        <BookingWizard
-                            service={service as any}
-                            provider={providers.find(p => p.id === providerId) as any}
-                            onClose={() => setIsWizardOpen(false)}
-                        />
-                        <Button onClick={() => setIsWizardOpen(false)} variant="outline" className="m-4">Close</Button>
-                    </div>
-                </div>
-            )}
         </div >
     );
 }

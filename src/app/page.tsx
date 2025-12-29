@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, Clock, Star, Shield, ArrowRight } from 'lucide-react';
+import { CheckCircle, Clock, Star, Shield, ArrowRight, Sparkles, Droplets, Zap, Scissors, Hammer, Paintbrush, Cog, Wrench } from 'lucide-react';
 import { API_URL } from '@/lib/api';
 import type { Category, Service } from '@/types';
 
@@ -14,12 +14,26 @@ export default function HomePage() {
   useEffect(() => {
     fetch(`${API_URL}/services/categories`)
       .then(res => res.json())
-      .then(data => setCategories(data))
+      .then(data => {
+        if (Array.isArray(data)) {
+          setCategories(data);
+        } else {
+          console.error('Categories API did not return an array:', data);
+          setCategories([]);
+        }
+      })
       .catch(console.error);
 
     fetch(`${API_URL}/services`)
       .then(res => res.json())
-      .then(data => setServices(data.slice(0, 4)))
+      .then(data => {
+        if (Array.isArray(data)) {
+          setServices(data.slice(0, 4));
+        } else {
+          console.error('Services API did not return an array:', data);
+          setServices([]);
+        }
+      })
       .catch(console.error);
   }, []);
 
@@ -79,9 +93,9 @@ export default function HomePage() {
               { value: '100+', label: 'Services Offered' },
               { value: '4.8★', label: 'Average Rating' },
             ].map((stat, i) => (
-              <div key={i}>
-                <div className="text-3xl lg:text-4xl font-black text-yellow-400">{stat.value}</div>
-                <div className="text-sm text-gray-400 mt-1">{stat.label}</div>
+              <div key={i} className={`flex flex-col items-center py-4 ${i !== 3 ? 'md:border-r border-zinc-800' : ''}`}>
+                <div className="text-3xl lg:text-4xl font-black text-white mb-2">{stat.value}</div>
+                <div className="text-sm text-gray-400 font-medium">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -101,17 +115,35 @@ export default function HomePage() {
             </Link>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-            {categories.map((cat) => (
-              <Link
-                key={cat.id}
-                href={`/services?categoryId=${cat.id}`}
-                className="border-2 border-black p-6 text-center hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all"
-              >
-                <div className="text-3xl mb-2">🔧</div>
-                <div className="font-bold text-sm">{cat.name}</div>
-                <div className="text-xs text-gray-500">View services →</div>
-              </Link>
-            ))}
+            {categories.map((cat) => {
+              const getCategoryIcon = (name: string) => {
+                const lowerName = name.toLowerCase();
+                if (lowerName.includes('cleaning')) return Sparkles;
+                if (lowerName.includes('plumbing')) return Droplets;
+                if (lowerName.includes('electrical')) return Zap;
+                if (lowerName.includes('salon')) return Scissors;
+                if (lowerName.includes('carpentry')) return Hammer;
+                if (lowerName.includes('painting')) return Paintbrush;
+                if (lowerName.includes('appliance')) return Cog;
+                return Wrench;
+              };
+
+              const Icon = getCategoryIcon(cat.name);
+
+              return (
+                <Link
+                  key={cat.id}
+                  href={`/services?categoryId=${cat.id}`}
+                  className="border-[3px] border-black p-6 text-center hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-all bg-white"
+                >
+                  <div className="flex justify-center mb-2">
+                    <Icon className="w-8 h-8" />
+                  </div>
+                  <div className="font-bold text-sm">{cat.name}</div>
+                  <div className="text-xs text-gray-500">View services →</div>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -130,8 +162,8 @@ export default function HomePage() {
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {services.map((service) => (
-              <div key={service.id} className="bg-white border-2 border-black p-0 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all">
-                <div className="h-32 bg-gray-100 flex items-center justify-center border-b-2 border-black">
+              <div key={service.id} className="bg-white border-[3px] border-black p-0 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-all">
+                <div className="h-32 bg-gray-100 flex items-center justify-center border-b-[3px] border-black">
                   <span className="text-4xl font-black text-gray-300">{service.name[0]}</span>
                 </div>
                 <div className="p-4">

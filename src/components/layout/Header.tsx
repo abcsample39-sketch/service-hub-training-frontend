@@ -16,7 +16,7 @@ export function Header() {
     const navLinks = [
         { href: "/", label: "Home" },
         { href: "/services", label: "Services" },
-        { href: "/dashboard", label: "My Bookings" },
+        ...(user ? [{ href: "/dashboard", label: "My Bookings" }] : []),
     ];
 
     const isActive = (href: string) => {
@@ -57,18 +57,11 @@ export function Header() {
 
                 {/* Right: Buttons */}
                 <div className="flex flex-1 items-center justify-end gap-3">
-                    <Link
-                        href="/provider/onboarding"
-                        className="hidden md:inline-flex text-xs font-bold uppercase border-2 border-black px-3 py-1.5 rounded-sm hover:bg-gray-100 transition-colors"
-                    >
-                        Provider Portal
-                    </Link>
-
                     {user ? (
                         <div className="hidden md:flex items-center gap-3">
                             <Link href="/profile" className="flex items-center gap-2 font-bold hover:underline">
                                 <User className="w-4 h-4" />
-                                <span className="hidden sm:inline">{user.displayName || 'User'}</span>
+                                <span className="hidden sm:inline">{user.name || 'User'}</span>
                             </Link>
                             <Button onClick={logout} variant="outline" size="sm" className="border-black text-black hover:bg-gray-100 rounded-sm">
                                 <LogOut className="w-4 h-4 mr-2" />
@@ -76,17 +69,19 @@ export function Header() {
                             </Button>
                         </div>
                     ) : (
-                        <Button onClick={signInWithGoogle} className="hidden md:flex bg-black text-white hover:bg-black/90 rounded-sm px-6">
-                            Login with Google
-                        </Button>
+                        <div className="hidden md:flex items-center gap-3">
+                            <Link href="/login">
+                                <Button variant="ghost" className="hover:bg-gray-100">
+                                    Login
+                                </Button>
+                            </Link>
+                            <Link href="/register">
+                                <Button className="bg-black text-white hover:bg-black/90 rounded-sm px-6">
+                                    Register
+                                </Button>
+                            </Link>
+                        </div>
                     )}
-
-                    <Link
-                        href="/admin/applications"
-                        className="text-xs font-bold uppercase bg-black text-white px-3 py-1.5 rounded-sm hover:bg-black/80 transition-colors hidden lg:block"
-                    >
-                        Admin
-                    </Link>
 
                     {/* Mobile Menu Button */}
                     <button
@@ -121,7 +116,7 @@ export function Header() {
 
                         <div className="border-t border-gray-200 pt-4 mt-2 space-y-2">
                             <Link
-                                href="/provider/onboarding"
+                                href="/provider/dashboard"
                                 onClick={closeMobileMenu}
                                 className="block px-4 py-3 text-xs font-bold uppercase border-2 border-black rounded-sm hover:bg-gray-100 text-center"
                             >
@@ -136,7 +131,7 @@ export function Header() {
                                         className="flex items-center gap-2 px-4 py-3 font-bold hover:bg-gray-100 rounded-sm"
                                     >
                                         <User className="w-4 h-4" />
-                                        {user.displayName || 'User'}
+                                        {user.name || 'User'}
                                     </Link>
                                     <Button
                                         onClick={() => { logout(); closeMobileMenu(); }}

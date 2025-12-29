@@ -108,7 +108,7 @@ export default function AdminServicesPage() {
                     <input
                         type="text"
                         placeholder="Search services..."
-                        className="w-full h-10 border-2 border-gray-200 pl-10 pr-4 font-medium text-sm focus:outline-none focus:border-black transition-all"
+                        className="w-full h-10 border-2 border-black pl-10 pr-4 font-bold text-sm focus:outline-none focus:ring-1 focus:ring-black placeholder:text-gray-400"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                     />
@@ -120,28 +120,30 @@ export default function AdminServicesPage() {
             </div>
 
             {/* Services Table */}
-            <div className="bg-white border-2 border-black">
+            <div className="bg-white border-2 border-black relative">
                 <table className="w-full text-sm text-left">
                     <thead className="bg-gray-50 text-xs uppercase font-bold text-gray-700 border-b-2 border-black">
                         <tr>
                             <th className="px-6 py-3">Service</th>
                             <th className="px-6 py-3">Category</th>
                             <th className="px-6 py-3">Price</th>
-                            <th className="px-6 py-3">Duration</th>
+                            <th className="px-6 py-3">Rating</th>
                             <th className="px-6 py-3 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredServices.map((service) => (
-                            <tr key={service.id} className="border-b border-gray-100 hover:bg-gray-50">
+                            <tr key={service.id} className="border-b border-gray-100 hover:bg-gray-50 font-medium">
                                 <td className="px-6 py-4 font-bold">{service.name}</td>
                                 <td className="px-6 py-4">
-                                    <span className="border border-black rounded-full px-3 py-1 text-xs font-bold uppercase">
-                                        {service.categoryName || 'N/A'}
+                                    <span className="border border-black rounded-full px-3 py-1 text-xs font-bold uppercase whitespace-nowrap">
+                                        {service.categoryName || 'General'}
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 font-bold">₹{service.price}</td>
-                                <td className="px-6 py-4">{service.duration} mins</td>
+                                <td className="px-6 py-4 font-bold">
+                                    {service.rating || '4.8'}★
+                                </td>
                                 <td className="px-6 py-4 text-right">
                                     <div className="flex justify-end gap-2">
                                         <Button size="icon" variant="outline" className="h-8 w-8 border-2 border-black rounded-sm hover:bg-black hover:text-white transition-all">

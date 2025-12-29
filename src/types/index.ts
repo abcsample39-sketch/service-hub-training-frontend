@@ -42,6 +42,7 @@ export interface Service {
     duration: number;
     categoryId: string;
     categoryName?: string;
+    rating?: number;
 }
 
 // ============================================

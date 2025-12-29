@@ -3,7 +3,7 @@
  * Centralized API URL management for the application
  */
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3006';
 
 /**
  * Helper function to build API endpoints
